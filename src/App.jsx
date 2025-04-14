@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
+import { store } from "./store/store";
 import { Toaster } from "react-hot-toast";
 import TeacherLayout from "./components/layout/TeacherLayout";
 import Login from "./pages/auth/Login";
@@ -15,8 +16,6 @@ import TeacherCourseDetail from "./pages/teacher/CourseDetail";
 import SavedCourses from "./pages/student/SavedCourses";
 import EditCourse from "./pages/teacher/EditCourse";
 import EditLesson from "./pages/teacher/EditLesson";
-import store from "./store/store";
-
 function App() {
   return (
     <Provider store={store}>
