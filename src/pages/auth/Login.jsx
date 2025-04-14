@@ -55,7 +55,7 @@ const Login = () => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full px-3 py-2 border bg-indigo-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
               required
             />
           </div>
@@ -69,7 +69,7 @@ const Login = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full px-3  py-2 border bg-indigo-50 rounded-lg focus:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               required
             />
           </div>
