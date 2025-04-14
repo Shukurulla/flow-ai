@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import { store } from "../store/store";
 
 const API_URL = "https://akkanat.pythonanywhere.com/api/courses";
 
