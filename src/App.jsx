@@ -2,9 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { Toaster } from "react-hot-toast";
-import TeacherLayout from "./components/Layout/TeacherLayout";
+import TeacherLayout from "./components/layout/TeacherLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+
 import StudentLayout from "./components/layout/StudentLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import StudentCourses from "./pages/student/Courses";
