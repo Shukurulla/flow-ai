@@ -1,16 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "vite.config.js",
-      "use": "@vitejs/plugin-react"
-    }
-  ],
+  "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://akkanat.pythonanywhere.com/api/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
