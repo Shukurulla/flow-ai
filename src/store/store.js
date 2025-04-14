@@ -8,4 +8,3 @@ export const store = configureStore({
     courses: courseReducer,
   },
 });
-export default store;
