@@ -15,7 +15,8 @@ import TeacherCourseDetail from "./pages/teacher/CourseDetail";
 import SavedCourses from "./pages/student/SavedCourses";
 import EditCourse from "./pages/teacher/EditCourse";
 import EditLesson from "./pages/teacher/EditLesson";
-import { store } from "./store/store";
+import store from "./store/store";
+
 function App() {
   return (
     <Provider store={store}>
