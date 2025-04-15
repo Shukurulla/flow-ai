@@ -11,7 +11,7 @@ const api = axios.create({
 
 // Har bir so'rov oldidan token qo'shamiz
 api.interceptors.request.use((config) => {
-  const { accessToken } = store.getState().auth;
+  const accessToken = localStorage.getItem("access");
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -29,7 +29,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const { refreshToken } = store.getState().auth;
+        const refreshToken = localStorage.getItem("refresh");
         const response = await axios.post(`${API_URL}/token/refresh/`, {
           refresh: refreshToken,
         });

@@ -25,27 +25,27 @@ const TeacherLayout = () => {
             className="flex items-center px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
           >
             <FiBook className="mr-3" />
-            My Courses
+            Mening Kurslarim
           </Link>
           <Link
             to="/teacher/profile"
             className="flex items-center px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
           >
             <FiUser className="mr-3" />
-            Profile
+            Profil
           </Link>
           <button
             onClick={handleLogout}
             className="flex items-center w-full px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
           >
             <FiLogOut className="mr-3" />
-            Logout
+            Chiqish
           </button>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 h-[100vh] overflow-auto">
         <Outlet />
       </div>
     </div>

@@ -5,14 +5,15 @@ import { toast } from "react-hot-toast";
 import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
 
 const TeacherCourseDetail = () => {
-  const { courseId } = useParams();
+  const { id } = useParams();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadCourse = async () => {
       try {
-        const data = await getCourseMaterials(courseId);
+        const data = await getCourseMaterials(id);
+
         setCourse(data);
       } catch (error) {
         toast.error("Failed to load course details");
@@ -21,7 +22,7 @@ const TeacherCourseDetail = () => {
       }
     };
     loadCourse();
-  }, [courseId]);
+  }, [id]);
 
   const handleDeleteLesson = (lessonId) => {
     // Implement delete functionality
@@ -65,11 +66,11 @@ const TeacherCourseDetail = () => {
           </Link>
         </div>
 
-        {course.lessons.length === 0 ? (
+        {course.lessons?.length === 0 ? (
           <p className="text-gray-500">No lessons yet</p>
         ) : (
           <div className="space-y-4">
-            {course.lessons.map((lesson) => (
+            {course.lessons?.map((lesson) => (
               <div
                 key={lesson.id}
                 className="border rounded-lg p-4 hover:bg-gray-50"

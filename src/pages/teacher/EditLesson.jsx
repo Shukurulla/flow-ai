@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 const EditLesson = () => {
-  const { lessonId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",

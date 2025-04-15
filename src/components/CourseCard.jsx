@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import api from "../api/courses";
 import { Link } from "react-router-dom";
+import api from "../api/courses";
+import { FiBook, FiUser, FiArrowRight, FiLoader } from "react-icons/fi";
+import { RiBook2Line } from "react-icons/ri";
 
-const CourseCard = ({ course, onClick }) => {
+const CourseCard = ({ course, onClick, isTeacher, lessonsCount }) => {
   const { user } = useSelector((state) => state.auth);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -29,38 +32,87 @@ const CourseCard = ({ course, onClick }) => {
     checkSubscription();
   }, [course.id, user?.id]);
 
-  return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="p-4">
-        <h3 className="text-lg font-semibold">{course.title}</h3>
-        <p className="text-gray-600 text-sm mt-2">{course.description}</p>
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
-        <div className="mt-4 flex justify-between items-center">
-          <span className="text-xs text-gray-500">
-            {course.instructor?.username || "O'qituvchi ko'rsatilmagan"}
-          </span>
-          {isSubscribed ? (
+  return (
+    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
+      {/* Kurs rasmi */}
+      <div className="relative h-48 bg-gray-100 flex items-center justify-center">
+        {imageError || !course.image ? (
+          <div className="text-gray-300 flex flex-col items-center">
+            <RiBook2Line size={64} />
+            <span className="mt-2 text-sm">Rasm mavjud emas</span>
+          </div>
+        ) : (
+          <img
+            src={`https://akkanat.pythonanywhere.com${course.image}`}
+            className="w-full h-full object-cover"
+            alt={course.title}
+            onError={handleImageError}
+          />
+        )}
+        {isTeacher && (
+          <div className="absolute top-2 right-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+            Sizning kursingiz
+          </div>
+        )}
+      </div>
+
+      {/* Kurs kontenti */}
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-bold text-gray-800 line-clamp-2">
+            {course.title}
+          </h3>
+          {lessonsCount !== undefined && (
+            <span className="flex items-center text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              <FiBook className="mr-1" size={14} />
+              {lessonsCount} dars
+            </span>
+          )}
+        </div>
+
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+          {course.description || "Tavsif mavjud emas"}
+        </p>
+
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+          <div className="flex items-center">
+            <FiUser className="text-gray-400 mr-1" size={16} />
+            <span className="text-sm text-gray-500">
+              {course.instructor?.username || "Noma'lum o'qituvchi"}
+            </span>
+          </div>
+
+          {isSubscribed || isTeacher || user?.role === "student" ? (
             <Link
-              className=" bg-green-100 text-green-800 px-2 rounded-md hover:bg-green-200"
-              to={`/student/courses/${course.id}`}
+              to={`/${user?.role || "student"}/courses/${course.id}/${
+                course?.lessons?.[0]?.id || "1"
+              }`}
+              className="flex items-center text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-lg transition-colors"
             >
-              Kursni ko'rish
+              Kirish <FiArrowRight className="ml-1" size={16} />
             </Link>
           ) : (
             <button
               onClick={onClick}
               disabled={loading}
-              className={`px-3 py-1 rounded-lg text-sm ${
-                isSubscribed
-                  ? "bg-green-100 text-green-800 hover:bg-green-200"
-                  : "bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
-              } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`flex items-center text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
+                loading
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
+              }`}
             >
-              {loading
-                ? "Tekshirilmoqda..."
-                : isSubscribed
-                ? "Kursni ko'rish"
-                : "Obuna bo'lish"}
+              {loading ? (
+                <>
+                  <FiLoader className="animate-spin mr-1" size={16} />
+                  Tekshirilmoqda...
+                </>
+              ) : (
+                "Obuna bo'lish"
+              )}
             </button>
           )}
         </div>

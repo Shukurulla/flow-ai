@@ -4,8 +4,8 @@ const initialState = {
   user: null,
   loading: false,
   error: null,
-  accessToken: localStorage.getItem("accessToken") || null,
-  refreshToken: localStorage.getItem("refreshToken") || null,
+  accessToken: localStorage.getItem("access") || null,
+  refreshToken: localStorage.getItem("refresh") || null,
 };
 
 const authSlice = createSlice({
@@ -36,14 +36,14 @@ const authSlice = createSlice({
     },
     updateToken: (state, action) => {
       state.accessToken = action.payload;
-      localStorage.setItem("accessToken", action.payload);
+      localStorage.setItem("access", action.payload);
     },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
     },
   },
 });

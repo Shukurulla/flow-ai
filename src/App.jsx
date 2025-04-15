@@ -40,7 +40,10 @@ function App() {
         <Route element={<ProtectedRoute roles={["student"]} />}>
           <Route path="/student" element={<StudentLayout />}>
             <Route path="courses" element={<StudentCourses />} />
-            <Route path="courses/:id" element={<CourseDetail />} />
+            <Route
+              path="courses/:courseId/:lessonId"
+              element={<CourseDetail />}
+            />
             <Route path="saved" element={<SavedCourses />} />
             <Route path="profile" element={<Profile />} />
           </Route>

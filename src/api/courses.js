@@ -77,7 +77,7 @@ export const fetchTeacherCourses = async (teacherId) => {
 
 export const getCourseMaterials = async (courseId) => {
   try {
-    const response = await api.get(`${API_URL}/${courseId}/materials`);
+    const response = await api.get(`${API_URL}/${courseId}/lessons`);
     return response.data;
   } catch (error) {
     throw error;
@@ -87,6 +87,16 @@ export const getCourseMaterials = async (courseId) => {
 export const fetchSubscribedCourses = async () => {
   try {
     const response = await api.get("/courses/subscribed/");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+export const fetchLessons = async (id) => {
+  try {
+    const response = await api.get(
+      `http://akkanat.pythonanywhere.com/api/lessons/lessons/${id}/`
+    );
     return response.data;
   } catch (error) {
     throw error;

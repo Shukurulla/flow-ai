@@ -6,20 +6,25 @@ import { editCourse } from "../../slices/courseSlice";
 import { toast } from "react-hot-toast";
 
 const EditCourse = () => {
-  const { courseId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { courses } = useSelector((state) => state.courses);
-  const { accessToken } = useSelector((state) => state.auth);
+  const { accessToken, user } = useSelector((state) => state.auth);
 
-  const currentCourse = courses.find(
-    (course) => course.id === parseInt(courseId)
-  );
+  const currentCourse = courses.find((course) => course.id === parseInt(id));
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
   });
+
+  useEffect(() => {
+    console.log(user);
+    console.log(user.id);
+
+    // dispatch(fetchTeacherCourses(user.id));
+  }, [courses, user.id]);
 
   useEffect(() => {
     if (currentCourse) {

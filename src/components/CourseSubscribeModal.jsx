@@ -6,11 +6,11 @@ import { useDispatch } from "react-redux";
 import { subscribeToCourse } from "../slices/courseSlice";
 import { useNavigate } from "react-router-dom";
 
-const CourseSubscribeModal = ({ course, onClose }) => {
+const CourseSubscribeModal = ({ course, onClose, courseId }) => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  console.log(course);
+
   const handleSubscribe = async () => {
     try {
       await dispatch(subscribeToCourse(course.id)).unwrap();

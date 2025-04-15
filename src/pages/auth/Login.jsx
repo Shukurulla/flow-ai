@@ -23,6 +23,8 @@ const Login = () => {
     setLoading(true);
     try {
       const { access, refresh } = await login(formData);
+      localStorage.setItem("refresh", refresh);
+      localStorage.setItem("access", access);
       dispatch(loginSuccess({ access, refresh }));
 
       const profile = await getProfile();
