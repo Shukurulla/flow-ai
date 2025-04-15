@@ -12,9 +12,10 @@ import {
   FiMessageSquare,
   FiX,
 } from "react-icons/fi";
+import { useSelector } from "react-redux";
 
 // Modal komponenti
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, isTyping }) => {
   if (!isOpen) return null;
 
   return (
@@ -24,6 +25,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           <h3 className="text-xl font-semibold">{title}</h3>
           <button
             onClick={onClose}
+            disabled={isTyping}
             className="text-gray-500 hover:text-gray-700"
           >
             <FiX size={24} />
@@ -44,9 +46,12 @@ const CourseDetail = () => {
   const [currentPdf, setCurrentPdf] = useState("");
   const [showChatModal, setShowChatModal] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
-  const [newQuestion, setNewQuestion] = useState("");
+  const [newMessage, setNewMessage] = useState("");
   const [lessons, setLessons] = useState([]);
-
+  const [isTyping, setIsTyping] = useState(false);
+  const [username, setUsername] = useState("");
+  const { user } = useSelector((state) => state.auth);
+  const [chatLoading, setChatLoading] = useState(false);
   useEffect(() => {
     const loadCourse = async () => {
       try {
@@ -62,6 +67,10 @@ const CourseDetail = () => {
 
         setCourse(response.data);
         setCurrentLesson(response.data);
+
+        // Auth tizimidan username ni olish
+        const storedUsername = localStorage.getItem("username") || "user";
+        setUsername(storedUsername);
       } catch (error) {
         toast.error("Kurs ma'lumotlarini yuklashda xatolik yuz berdi");
       } finally {
@@ -71,6 +80,38 @@ const CourseDetail = () => {
     loadCourse();
   }, [lessonId]);
 
+  const loadAllChatHistory = async () => {
+    setChatLoading(true);
+    try {
+      let allMessages = [];
+      let nextUrl = `https://akkanat.pythonanywhere.com/api/chat/${lessonId}/history/`;
+
+      // Barcha sahifalardagi xabarlarni yig'amiz
+      while (nextUrl) {
+        const response = await api.get(nextUrl);
+        allMessages = [...allMessages, ...response.data.results];
+        nextUrl = response.data.next;
+      }
+
+      // Faqat joriy foydalanuvchiga tegishli xabarlarni ajratib olamiz
+      const filteredMessages = allMessages
+        .filter((msg) => msg.username === user.username)
+        .map((msg) => ({
+          id: msg.id,
+          text: msg.message,
+          isBot: !msg.is_from_student,
+          createdAt: msg.created_at,
+        }));
+
+      setChatMessages(filteredMessages);
+      setChatLoading(false);
+    } catch (error) {
+      toast.error("Chat tarixini yuklashda xatolik yuz berdi");
+      setChatLoading(false);
+      console.error("Chat history error:", error);
+    }
+  };
+
   const handleFileClick = (fileUrl) => {
     const extension = fileUrl.split(".").pop().toLowerCase();
     if (extension === "pdf") {
@@ -79,44 +120,92 @@ const CourseDetail = () => {
     }
   };
 
-  const startChat = () => {
+  const startChat = async () => {
     setShowChatModal(true);
-    if (currentLesson?.questions) {
-      const initialMessages = currentLesson.questions.map(
-        (question, index) => ({
-          id: index,
-          text: question,
-          isBot: false,
-          isQuestion: true,
-        })
-      );
-      setChatMessages(initialMessages);
-    }
+    await loadAllChatHistory();
   };
 
-  const handleSendQuestion = () => {
-    if (!newQuestion.trim()) return;
+  const simulateTyping = async (responseText) => {
+    setIsTyping(true);
+    let displayedText = "";
 
-    // Yangi savolni qo'shamiz
-    const questionMessage = {
-      id: chatMessages.length + 1,
-      text: newQuestion,
+    for (let i = 0; i < responseText.length; i++) {
+      displayedText += responseText[i];
+      setChatMessages((prev) => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage.isTyping) {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastMessage,
+              text: displayedText,
+            },
+          ];
+        }
+        return prev;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+
+    setIsTyping(false);
+    setChatMessages((prev) => {
+      const lastMessage = prev[prev.length - 1];
+      if (lastMessage.isTyping) {
+        return [
+          ...prev.slice(0, -1),
+          {
+            ...lastMessage,
+            isTyping: false,
+          },
+        ];
+      }
+      return prev;
+    });
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    // Foydalanuvchi xabarini darhol qo'shamiz
+    const userMessage = {
+      id: Date.now(),
+      text: newMessage,
       isBot: false,
-      isQuestion: true,
+      createdAt: new Date().toISOString(),
     };
 
-    setChatMessages([...chatMessages, questionMessage]);
-    setNewQuestion("");
+    setChatMessages((prev) => [...prev, userMessage]);
+    setNewMessage("");
 
-    // Simulyatsiya: ChatGPT javobi
-    setTimeout(() => {
-      const answerMessage = {
-        id: chatMessages.length + 2,
-        text: `"${newQuestion}" savolingizga javob. ChatGPT tomonidan generatsiya qilingan javob bu yerda ko'rinadi.`,
+    try {
+      // APIga xabar yuboramiz
+      const response = await api.post(
+        `https://akkanat.pythonanywhere.com/api/chat/${lessonId}/send-message/`,
+        { message: newMessage }
+      );
+
+      // Bot javobini typing effekti bilan qo'shamiz
+      const botMessage = {
+        id: Date.now() + 1,
+        text: "",
         isBot: true,
+        isTyping: true,
       };
-      setChatMessages((prev) => [...prev, answerMessage]);
-    }, 1500);
+
+      setChatMessages((prev) => [...prev, botMessage]);
+      await simulateTyping(response.data.response);
+    } catch (error) {
+      toast.error("Xabar yuborishda xatolik yuz berdi");
+      // Xatolik xabarini qo'shamiz
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          text: "Xabar yuborishda xatolik yuz berdi. Iltimos, keyinroq urunib ko'ring.",
+          isBot: true,
+        },
+      ]);
+    }
   };
 
   const getFileIcon = (fileName) => {
@@ -238,6 +327,7 @@ const CourseDetail = () => {
       {/* PDF ko'rish uchun modal */}
       <Modal
         isOpen={showPdfModal}
+        isTyping={isTyping}
         onClose={() => setShowPdfModal(false)}
         title="PDF ko'rish"
       >
@@ -260,53 +350,67 @@ const CourseDetail = () => {
       {/* ChatGPT suhbat modal */}
       <Modal
         isOpen={showChatModal}
+        isTyping={isTyping}
         onClose={() => setShowChatModal(false)}
-        title="Savol-javob"
+        title="Suhbat"
       >
-        <div className="h-[60vh] overflow-y-auto mb-4 space-y-3 px-2">
-          {chatMessages.map((message) => (
-            <div
-              key={message.id}
-              className={`max-w-[70%] p-3 rounded-xl shadow-sm text-sm ${
-                message.isBot
-                  ? "bg-[#e2f5e9] text-gray-800 self-start mr-auto"
-                  : "bg-[#dbeafe] text-gray-800 self-end ml-auto"
-              }`}
-            >
-              <p>{message.text}</p>
-
-              {message.isQuestion && !message.isBot && (
-                <button
-                  className="mt-2 text-sm text-blue-600 hover:underline flex items-center"
-                  onClick={() => {
-                    const answerMessage = {
-                      id: chatMessages.length + 1,
-                      text: `"${message.text}" savolingizga javob. ChatGPT tomonidan generatsiya qilingan javob bu yerda ko'rinadi.`,
-                      isBot: true,
-                    };
-                    setChatMessages((prev) => [...prev, answerMessage]);
-                  }}
+        {chatLoading ? (
+          <div className="pb-5">
+            <p>Loading...</p>
+          </div>
+        ) : (
+          <div className="h-[60vh] overflow-y-auto mb-4 space-y-3 px-2">
+            {chatMessages.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <p>Suhbatni boshlang</p>
+                <p>
+                  Darsga oid har qanday savolingiz bo'lsa yozishingiz mumkin
+                </p>
+              </div>
+            ) : (
+              chatMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`max-w-[70%] p-3 rounded-xl shadow-sm text-sm ${
+                    message.isBot
+                      ? "bg-[#e2f5e9] text-gray-800 self-start mr-auto"
+                      : "bg-[#dbeafe] text-gray-800 self-end ml-auto"
+                  }`}
                 >
-                  <FiMessageSquare className="mr-1" />
-                  Javob olish
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
+                  <p>{message.text}</p>
+                  {message.isTyping && (
+                    <div className="flex space-x-1 mt-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.4s" }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         <div className="flex border-t pt-3 px-2">
           <input
             type="text"
-            value={newQuestion}
-            onChange={(e) => setNewQuestion(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSendQuestion()}
-            placeholder="Savolingizni yozing..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+            placeholder="Xabaringizni yozing..."
             className="flex-1 border rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            disabled={isTyping}
           />
           <button
-            onClick={handleSendQuestion}
-            className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700"
+            onClick={handleSendMessage}
+            className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700 disabled:bg-blue-400"
+            disabled={isTyping || !newMessage.trim()}
           >
             Yuborish
           </button>
@@ -318,7 +422,7 @@ const CourseDetail = () => {
         <button
           onClick={startChat}
           className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
-          title="Savol-javob"
+          title="Suhbat"
         >
           <FiMessageSquare size={24} />
         </button>

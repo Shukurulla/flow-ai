@@ -36,6 +36,17 @@ const CourseCard = ({ course, onClick, isTeacher, lessonsCount }) => {
     setImageError(true);
   };
 
+  // Linkni generatsiya qilish funksiyasi
+  const generateCourseLink = () => {
+    if (isTeacher) {
+      return `/teacher/courses/${course.id}`;
+    } else if (user?.role === "student") {
+      return `/student/courses/${course.id}/${course?.lessons?.[0]?.id || "1"}`;
+    } else {
+      return "#";
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100">
       {/* Kurs rasmi */}
@@ -61,7 +72,7 @@ const CourseCard = ({ course, onClick, isTeacher, lessonsCount }) => {
       </div>
 
       {/* Kurs kontenti */}
-      <div className="p-5">
+      <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-bold text-gray-800 line-clamp-2">
             {course.title}
@@ -88,9 +99,7 @@ const CourseCard = ({ course, onClick, isTeacher, lessonsCount }) => {
 
           {isSubscribed || isTeacher || user?.role === "student" ? (
             <Link
-              to={`/${user?.role || "student"}/courses/${course.id}/${
-                course?.lessons?.[0]?.id || "1"
-              }`}
+              to={generateCourseLink()}
               className="flex items-center text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-lg transition-colors"
             >
               Kirish <FiArrowRight className="ml-1" size={16} />

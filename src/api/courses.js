@@ -154,6 +154,22 @@ export const deleteCourse = async (courseId, token) => {
     throw error;
   }
 };
+// api/courses.js fayliga qo'shing
+export const deleteLesson = async (lessonId) => {
+  try {
+    const response = await api.delete(
+      `https://akkanat.pythonanywhere.com/api/lessons/lessons/${lessonId}/`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access")}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 export const checkCourseSubscription = async (courseId, userId) => {
   try {
     const response = await api.get(`/courses/${courseId}/`);

@@ -86,17 +86,21 @@ export const getProfile = async () => {
   }
 };
 
-export const updateUserProfile = async (formData) => {
+// api/auth.js fayliga qo'shing
+export const updateUserProfile = async (formData, token) => {
   try {
-    const response = await api.put("/profile/", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    toast.success("Profile updated successfully");
+    const response = await api.patch(
+      "https://akkanat.pythonanywhere.com/api/users/profile/",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to update profile");
     throw error;
   }
 };

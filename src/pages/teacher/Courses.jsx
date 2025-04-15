@@ -104,7 +104,7 @@ const TeacherCourses = () => {
   return (
     <>
       {createModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-[#0000003d] bg-opacity-30 z-50">
           <form
             onSubmit={createHandler}
             className="bg-white w-[90%] md:w-[600px] rounded-lg p-6 shadow-md"

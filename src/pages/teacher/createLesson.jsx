@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import api from "../../api/courses";
 import {
   FiUpload,
-  FiTrash2,
   FiSave,
   FiLoader,
   FiX,
@@ -14,12 +13,10 @@ import {
   FiVideo,
 } from "react-icons/fi";
 
-const EditLesson = () => {
+const CreateLesson = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [lesson, setLesson] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -27,53 +24,25 @@ const EditLesson = () => {
     order: "",
     attachment_files: [],
   });
-  const [newAttachments, setNewAttachments] = useState([]);
-  const [filesToDelete, setFilesToDelete] = useState([]);
+  const [files, setFiles] = useState([]);
 
-  useEffect(() => {
-    const fetchLesson = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(
-          `https://akkanat.pythonanywhere.com/api/lessons/lessons/${id}/`
-        );
-        setLesson(response.data);
-        setFormData({
-          title: response.data.title,
-          content: response.data.content,
-          video_url: response.data.video_url,
-          order: response.data.order,
-          attachment_files: [],
-        });
-      } catch (error) {
-        toast.error("Dars ma'lumotlarini yuklashda xatolik");
-        console.error("Dars yuklashda xatolik:", error);
-        navigate(-1);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLesson();
-  }, [id, navigate]);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    setNewAttachments([...newAttachments, ...files]);
+    const newFiles = Array.from(e.target.files);
+    setFiles([...files, ...newFiles]);
   };
 
-  const removeNewFile = (index) => {
-    const updatedFiles = [...newAttachments];
+  const removeFile = (index) => {
+    const updatedFiles = [...files];
     updatedFiles.splice(index, 1);
-    setNewAttachments(updatedFiles);
-  };
-
-  const removeExistingFile = (fileId) => {
-    setFilesToDelete([...filesToDelete, fileId]);
+    setFiles(updatedFiles);
   };
 
   const getFileIcon = (fileName) => {
@@ -97,31 +66,27 @@ const EditLesson = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.content) {
+    if (!formData.title || !formData.content || !formData.order) {
       toast.error("Iltimos, barcha majburiy maydonlarni to'ldiring");
       return;
     }
 
     try {
-      setSubmitting(true);
+      setLoading(true);
       const data = new FormData();
       data.append("title", formData.title);
       data.append("content", formData.content);
       data.append("video_url", formData.video_url);
       data.append("order", formData.order);
+      data.append("course", id);
 
-      // Yangi fayllarni qo'shish
-      newAttachments.forEach((file) => {
+      // Fayllarni qo'shish
+      files.forEach((file) => {
         data.append("attachment_files", file);
       });
 
-      // O'chirilgan fayllarni yuborish
-      filesToDelete.forEach((fileId) => {
-        data.append("delete_attachments", fileId);
-      });
-
-      const response = await api.patch(
-        `https://akkanat.pythonanywhere.com/api/lessons/lessons/${id}/`,
+      const response = await api.post(
+        "https://akkanat.pythonanywhere.com/api/lessons/lessons/",
         data,
         {
           headers: {
@@ -130,31 +95,15 @@ const EditLesson = () => {
         }
       );
 
-      toast.success("Dars muvaffaqiyatli tahrirlandi!");
-      navigate(-1);
+      toast.success("Dars muvaffaqiyatli yaratildi!");
+      navigate(`/teacher/courses/${id}`);
     } catch (error) {
-      toast.error("Darsni tahrirlashda xatolik yuz berdi");
-      console.error("Tahrirlashda xatolik:", error);
+      toast.error("Dars yaratishda xatolik yuz berdi");
+      console.error("Yaratishda xatolik:", error);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
-  }
-
-  if (!lesson) {
-    return (
-      <div className="p-6 text-center">
-        <p>Dars topilmadi</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -162,11 +111,9 @@ const EditLesson = () => {
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-800">
-              Darsni tahrirlash
+              Yangi dars yaratish
             </h1>
-            <p className="text-gray-600 mt-1">
-              {lesson.course?.title || "Noma'lum kurs"}
-            </p>
+            <p className="text-gray-600 mt-1">Kurs ID: {id}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -176,15 +123,16 @@ const EditLesson = () => {
                   htmlFor="title"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Sarlavha *
+                  Dars nomi *
                 </label>
                 <input
                   type="text"
                   id="title"
                   name="title"
                   value={formData.title}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Dars nomini kiriting"
                   required
                 />
               </div>
@@ -201,8 +149,9 @@ const EditLesson = () => {
                   id="order"
                   name="order"
                   value={formData.order}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Dars tartib raqami"
                   required
                 />
               </div>
@@ -213,15 +162,16 @@ const EditLesson = () => {
                 htmlFor="content"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Kontent *
+                Dars kontenti *
               </label>
               <textarea
                 id="content"
                 name="content"
                 rows={6}
                 value={formData.content}
-                onChange={handleChange}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Dars haqida to'liq ma'lumot"
                 required
               />
             </div>
@@ -240,7 +190,7 @@ const EditLesson = () => {
                   id="video_url"
                   name="video_url"
                   value={formData.video_url}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="https://youtube.com/watch?v=..."
                 />
@@ -252,48 +202,14 @@ const EditLesson = () => {
                 Qo'shimcha fayllar
               </label>
 
-              {/* Mavjud fayllar */}
-              {lesson.attachments?.filter((f) => !filesToDelete.includes(f.id))
-                .length > 0 && (
+              {/* Tanlangan fayllar */}
+              {files.length > 0 && (
                 <div className="mb-4">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">
-                    Mavjud fayllar:
+                    Tanlangan fayllar:
                   </h3>
                   <div className="space-y-2">
-                    {lesson.attachments
-                      .filter((f) => !filesToDelete.includes(f.id))
-                      .map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex items-center justify-between bg-gray-50 p-3 rounded-md"
-                        >
-                          <div className="flex items-center">
-                            {getFileIcon(file.file)}
-                            <span className="ml-2 text-sm truncate max-w-xs">
-                              {file.file.split("/").pop()}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeExistingFile(file.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <FiTrash2 />
-                          </button>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Yangi fayllar */}
-              {newAttachments.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">
-                    Yangi fayllar:
-                  </h3>
-                  <div className="space-y-2">
-                    {newAttachments.map((file, index) => (
+                    {files.map((file, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between bg-blue-50 p-3 rounded-md"
@@ -306,10 +222,10 @@ const EditLesson = () => {
                         </div>
                         <button
                           type="button"
-                          onClick={() => removeNewFile(index)}
+                          onClick={() => removeFile(index)}
                           className="text-red-500 hover:text-red-700"
                         >
-                          <FiTrash2 />
+                          <FiX />
                         </button>
                       </div>
                     ))}
@@ -342,25 +258,25 @@ const EditLesson = () => {
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate(`/teacher/courses/${id}`)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Bekor qilish
               </button>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={loading}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                {submitting ? (
+                {loading ? (
                   <>
                     <FiLoader className="animate-spin mr-2" />
-                    Saqlanmoqda...
+                    Yaratilmoqda...
                   </>
                 ) : (
                   <>
                     <FiSave className="mr-2" />
-                    Saqlash
+                    Darsni yaratish
                   </>
                 )}
               </button>
@@ -372,4 +288,4 @@ const EditLesson = () => {
   );
 };
 
-export default EditLesson;
+export default CreateLesson;

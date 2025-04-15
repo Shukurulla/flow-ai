@@ -13,8 +13,9 @@ import Profile from "./pages/Profile";
 import TeacherCourses from "./pages/teacher/Courses";
 import TeacherCourseDetail from "./pages/teacher/CourseDetail";
 import SavedCourses from "./pages/student/SavedCourses";
-import EditCourse from "./pages/teacher/EditCourse";
 import EditLesson from "./pages/teacher/EditLesson";
+import EditCoursePage from "./pages/teacher/EditCourse";
+import CreateLesson from "./pages/teacher/createLesson";
 function App() {
   return (
     <BrowserRouter>
@@ -53,9 +54,10 @@ function App() {
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route index element={<TeacherCourses />} />
             <Route path="courses/:id" element={<TeacherCourseDetail />} />
-            <Route path="courses/:id/edit" element={<EditCourse />} />
+            <Route path="courses/:id/edit" element={<EditCoursePage />} />
             <Route path="lessons/:id/edit" element={<EditLesson />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="lessons/:id/create" element={<CreateLesson />} />
           </Route>
         </Route>
 
