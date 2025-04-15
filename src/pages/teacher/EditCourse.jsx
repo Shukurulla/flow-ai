@@ -9,7 +9,6 @@ const EditCourse = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { courses } = useSelector((state) => state.courses);
   const { accessToken, user } = useSelector((state) => state.auth);
 
   const currentCourse = courses.find((course) => course.id === parseInt(id));
@@ -50,7 +49,7 @@ const EditCourse = () => {
         })
       ).unwrap();
       toast.success("Course updated successfully");
-      navigate(`/teacher/courses/${courseId}`);
+      navigate(`/teacher/courses/${id}`);
     } catch (error) {
       toast.error(error.message || "Failed to update course");
     }

@@ -51,12 +51,12 @@ const CourseDetail = () => {
     const loadCourse = async () => {
       try {
         const lessons = await api.get(
-          `http://akkanat.pythonanywhere.com/api/courses/${courseId}/lessons/`
+          `https://akkanat.pythonanywhere.com/api/courses/${courseId}/lessons/`
         );
         setLessons(lessons.data.lessons);
 
         const response = await api.get(
-          `http://akkanat.pythonanywhere.com/api/lessons/lessons/${lessonId}/`
+          `https://akkanat.pythonanywhere.com/api/lessons/lessons/${lessonId}/`
         );
         console.log(response.data);
 

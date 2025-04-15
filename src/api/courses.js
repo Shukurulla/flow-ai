@@ -95,7 +95,7 @@ export const fetchSubscribedCourses = async () => {
 export const fetchLessons = async (id) => {
   try {
     const response = await api.get(
-      `http://akkanat.pythonanywhere.com/api/lessons/lessons/${id}/`
+      `https://akkanat.pythonanywhere.com/api/lessons/lessons/${id}/`
     );
     return response.data;
   } catch (error) {
