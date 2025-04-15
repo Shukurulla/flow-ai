@@ -5,30 +5,28 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "dist" // Vite default chiqish papkasi "dist"
       }
     }
   ],
   "routes": [
     {
-      "src": "^/static/(.*)",
-      "dest": "/static/$1"
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "dest": "/assets/$1"
     },
     {
-      "src": "^/favicon.ico",
-      "dest": "/favicon.ico"
-    },
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "status": 200
+    }
+  ],
+  "rewrites": [
     {
-      "src": "^/asset-manifest.json",
-      "dest": "/asset-manifest.json"
-    },
-    {
-      "src": "^/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "^/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
