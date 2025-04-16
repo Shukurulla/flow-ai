@@ -133,7 +133,7 @@ const TeacherCourseDetail = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
           <h2 className="text-xl font-semibold mb-4 sm:mb-0">Darslar</h2>
           <Link
-            to={`/teacher/courses/${course.id}/lessons/create`}
+            to={`/teacher/lessons/${course.id}/create`}
             className="flex items-center bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition"
           >
             <FiPlus className="mr-1" />

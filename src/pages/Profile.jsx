@@ -3,15 +3,24 @@ import { useSelector, useDispatch } from "react-redux";
 import { updateUserProfile } from "../api/auth";
 import { toast } from "react-hot-toast";
 import { updateProfile } from "../slices/authSlice";
-import { FiEdit, FiCamera, FiSave, FiLoader } from "react-icons/fi";
+import {
+  FiEdit,
+  FiCamera,
+  FiSave,
+  FiLoader,
+  FiMail,
+  FiPhone,
+  FiUser,
+} from "react-icons/fi";
 
 const Profile = () => {
   const { user, accessToken } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
-    username: "",
     email: "",
     phone_number: "",
+    first_name: "",
+    last_name: "",
     image: null,
     previewImage: "",
   });
@@ -21,9 +30,10 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       setFormData({
-        username: user.username || "",
         email: user.email || "",
         phone_number: user.phone_number || "",
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
         image: null,
         previewImage: user.image || "",
       });
@@ -33,7 +43,6 @@ const Profile = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    // Xatoliklarni tozalash
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
@@ -42,7 +51,6 @@ const Profile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Fayl hajmini tekshirish (masalan, 2MB dan oshmasligi kerak)
       if (file.size > 2 * 1024 * 1024) {
         setErrors({ ...errors, image: "Rasm hajmi 2MB dan oshmasligi kerak" });
         return;
@@ -59,10 +67,6 @@ const Profile = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.username.trim()) {
-      newErrors.username = "Username majburiy";
-    }
 
     if (!formData.email.trim()) {
       newErrors.email = "Email majburiy";
@@ -91,10 +95,15 @@ const Profile = () => {
     setLoading(true);
     try {
       const formPayload = new FormData();
-      formPayload.append("username", formData.username);
       formPayload.append("email", formData.email);
       if (formData.phone_number) {
         formPayload.append("phone_number", formData.phone_number);
+      }
+      if (formData.first_name) {
+        formPayload.append("first_name", formData.first_name);
+      }
+      if (formData.last_name) {
+        formPayload.append("last_name", formData.last_name);
       }
       if (formData.image) {
         formPayload.append("image", formData.image);
@@ -106,12 +115,8 @@ const Profile = () => {
     } catch (error) {
       console.error("Profilni yangilashda xatolik:", error);
 
-      // API dan kelgan xatoliklarni qayta ishlash
       if (error.response?.data) {
         const apiErrors = error.response.data;
-        if (apiErrors.username) {
-          setErrors({ ...errors, username: apiErrors.username.join(" ") });
-        }
         if (apiErrors.email) {
           setErrors({ ...errors, email: apiErrors.email.join(" ") });
         }
@@ -133,20 +138,22 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
+          {/* Header */}
+          <div className="bg-indigo-600 px-6 py-4">
+            <h1 className="text-2xl font-bold text-white flex items-center">
+              <FiUser className="mr-2" />
               Profilni tahrirlash
             </h1>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6">
+          <form onSubmit={handleSubmit} className="p-6 md:p-8">
             <div className="flex flex-col md:flex-row gap-8">
-              {/* Rasm qismi */}
-              <div className="flex flex-col items-center">
-                <div className="relative w-32 h-32 rounded-full bg-gray-200 mb-4 overflow-hidden">
+              {/* Profile Image Section */}
+              <div className="flex flex-col items-center w-full md:w-1/3">
+                <div className="relative w-40 h-40 rounded-full bg-gray-200 mb-4 overflow-hidden border-4 border-white shadow-lg">
                   {formData.previewImage ? (
                     <img
                       src={`https://akkanat.pythonanywhere.com${formData.previewImage}`}
@@ -154,11 +161,11 @@ const Profile = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
+                    <div className="w-full h-full flex items-center justify-center text-5xl text-gray-500 font-bold">
                       {user?.username?.charAt(0)?.toUpperCase()}
                     </div>
                   )}
-                  <label className="absolute bottom-3 right-3 bg-white p-2 rounded-full shadow-md cursor-pointer hover:bg-gray-100">
+                  <label className="absolute bottom-3 right-3 bg-indigo-100 p-2 rounded-full shadow-md cursor-pointer hover:bg-indigo-200 transition-colors">
                     <FiCamera className="text-indigo-600" />
                     <input
                       type="file"
@@ -169,90 +176,136 @@ const Profile = () => {
                   </label>
                 </div>
                 {errors.image && (
-                  <p className="text-red-500 text-sm mt-1">{errors.image}</p>
+                  <p className="text-red-500 text-sm mt-1 text-center">
+                    {errors.image}
+                  </p>
                 )}
+
+                {/* Username Display (non-editable) */}
+                <div className="mt-4 text-center">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {user?.username}
+                  </h3>
+                  <p className="text-sm text-gray-500">Foydalanuvchi nomi</p>
+                </div>
               </div>
 
-              {/* Forma qismi */}
-              <div className="flex-1 space-y-4">
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Foydalanuvchi nomi *
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.username ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {errors.username && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.username}
-                    </p>
-                  )}
-                </div>
-
-                <div>
+              {/* Form Fields */}
+              <div className="flex-1 space-y-6">
+                {/* Email Field */}
+                <div className="space-y-1">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="flex items-center text-sm font-medium text-gray-700"
                   >
+                    <FiMail className="mr-2 text-indigo-600" />
                     Elektron pochta *
                   </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.email ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
+                  <div className="relative">
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                        errors.email ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="example@mail.com"
+                    />
+                    <FiMail className="absolute left-3 top-3 text-gray-400" />
+                  </div>
                   {errors.email && (
                     <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                   )}
                 </div>
 
-                <div>
+                {/* Phone Number Field */}
+                <div className="space-y-1">
                   <label
                     htmlFor="phone_number"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="flex items-center text-sm font-medium text-gray-700"
                   >
+                    <FiPhone className="mr-2 text-indigo-600" />
                     Telefon raqami
                   </label>
-                  <input
-                    type="text"
-                    id="phone_number"
-                    name="phone_number"
-                    value={formData.phone_number}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.phone_number ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="+998901234567"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="phone_number"
+                      name="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleChange}
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                        errors.phone_number
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="+998901234567"
+                    />
+                    <FiPhone className="absolute left-3 top-3 text-gray-400" />
+                  </div>
                   {errors.phone_number && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.phone_number}
                     </p>
                   )}
                 </div>
+
+                {/* First Name Field */}
+                {/* <div className="space-y-1">
+                  <label
+                    htmlFor="first_name"
+                    className="flex items-center text-sm font-medium text-gray-700"
+                  >
+                    <FiUser className="mr-2 text-indigo-600" />
+                    Ism
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="first_name"
+                      name="first_name"
+                      value={formData.first_name}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Ismingiz"
+                    />
+                    <FiUser className="absolute left-3 top-3 text-gray-400" />
+                  </div>
+                </div> */}
+
+                {/* Last Name Field */}
+                {/* <div className="space-y-1">
+                  <label
+                    htmlFor="last_name"
+                    className="flex items-center text-sm font-medium text-gray-700"
+                  >
+                    <FiUser className="mr-2 text-indigo-600" />
+                    Familiya
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="last_name"
+                      name="last_name"
+                      value={formData.last_name}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Familiyangiz"
+                    />
+                    <FiUser className="absolute left-3 top-3 text-gray-400" />
+                  </div>
+                </div> */}
               </div>
             </div>
 
-            <div className="flex justify-end mt-8 pt-4 border-t border-gray-200">
+            {/* Save Button */}
+            <div className="flex justify-end mt-8 pt-6 border-t border-gray-200">
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition-colors duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
